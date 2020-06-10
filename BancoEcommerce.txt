@@ -1,0 +1,214 @@
+Nome do Banco: ecomerce
+senha: postgres
+
+
+senha cripto (123456) = $2a$08$VWO.L1tNithYssM5PNfXSuhj3Sw.Rcl3QYAjj9VP1OrTeVgCWbFUa
+
+ativar: CREATE EXTENSION pgcrypto; 
+
+
+CREATE TABLE categorias
+(
+  id serial,
+  nome varchar,
+  CONSTRAINT categorias_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE subCategoria (
+	id serial NOT NULL,
+	nome varchar,
+	idcategoria int references categorias(id)on delete cascade,
+	CONSTRAINT subCategoria_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE clientes
+(
+  id serial,
+  nome varchar(100),
+  email varchar(100) NOT NULL UNIQUE,
+  senha varchar(100) NOT NULL,
+  cpf varchar(15),
+  mkt varchar(10),
+  sexo varchar(10),
+  nascimento varchar(15),
+  telefone varchar(15),
+  cep varchar(10),
+  endereco varchar(100),
+  numero varchar(10),
+  complemento varchar(100),
+  bairro varchar(100),
+  cidade varchar(100),
+  uf varchar(5),
+  CONSTRAINT clientes_pk PRIMARY KEY (id)
+ 
+);
+
+CREATE TABLE usuarios
+(
+  id serial,
+  nome varchar,
+  email varchar,
+  senha varchar,
+  status varchar,
+  CONSTRAINT usuarios_pk PRIMARY KEY (id)
+);
+
+
+CREATE TABLE variacoes (
+    id serial primary key,
+    nome varchar
+);
+
+insert into variacoes (nome) values ('PADRAO');
+
+CREATE TABLE opcoesVariacao (
+    id serial primary key,
+    tipo varchar,
+    idVariacao int references variacoes (id) on delete cascade
+);
+
+insert into opcoesVariacao (tipo,idVariacao) values ('PADRAO','1');
+
+CREATE TABLE produto
+(
+  id serial,
+  codigo character varying unique,
+  visivel boolean,
+  titulo character varying,
+  descricao character varying,
+  fotoprincipal character varying,
+  tags character varying,
+  destaque boolean,
+  novidade boolean,
+  altura real,
+  largura real,
+  comprimento real,
+  peso real,
+  custo real,
+  preco real,
+  CONSTRAINT produto_pkey PRIMARY KEY (id,codigo)
+);
+
+CREATE TABLE produtos_opcaoVariacao (
+	id serial primary key,
+	codProduto character varying REFERENCES produto (codigo) on delete cascade,
+	idOpcaoVariacao int REFERENCES opcoesVariacao (id) on delete cascade,
+	fotoVariacao character varying,
+	qtdEstoque int
+	
+);
+
+CREATE TABLE produtos_subCategoria (
+	id serial primary key,	
+	codProduto character varying REFERENCES produto (codigo) on delete cascade,
+	idSubCategoria int REFERENCES subCategoria (id) on delete cascade
+		
+);
+
+
+
+
+CREATE TABLE Email (
+    id serial primary key,
+    assunto varchar,
+    mensagem varchar,
+    padrao varchar
+ );
+
+insert into email (assunto,mensagem) values ('Recebemos seu cadastro com sucesso','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('O produto que você quer já está disponível para compra','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Alteração de Senha','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Recebemos seu pedido (numero do pedido) com sucesso','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Seu pedido (numero do Pedido) foi atualizado','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Personalizar email de código de rastreamento','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Recebemos seu pagamento da cobrança (codigo da Cobrança)','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Seu pedido (codigo do pedido) foi concluído','<p><em><strong>Texto Personalizado aqui!!</strong></em></p>');
+insert into email (assunto,mensagem) values ('Alteração de Senha','<p><span style="font-size:11px"><span style="font-family:verdana,geneva,sans-serif">Ol&aacute; $usuario.nome,<br /><br />Anote abaixo sua senha de acesso ao painel Administrativo:<br /><br />$usuario.senha<br /><br />---<br />HRS Pedalboards<br />http://www.hrspedalboards.com</span></span></p>');
+
+
+CREATE TABLE loja (
+	id serial,
+	nome varchar,
+	descricao varchar,
+	email varchar,
+	telefone varchar,
+	CEP varchar,
+	estoqueminimo int,
+	CONSTRAINT loja_pk PRIMARY KEY (id)
+);
+
+insert into loja(nome,descricao,email,telefone,cep) values ('Loja Padrão','Descrição da Loja','email@email.com','1147586958','08735-275);
+
+
+
+
+CREATE TABLE desconto (
+	id serial,
+	codigo varchar primary key,
+	descricao varchar ,
+	porcentagem real,
+	status varchar ,
+	qtdeUtilizado int NOT NULL DEFAULT '0',
+	data TIMESTAMP,
+	validade TIMESTAMP
+);
+
+
+
+
+
+
+
+CREATE TABLE pedido (
+	id serial,
+	codigo varchar primary key,
+	idCliente int references clientes(id) on delete cascade,
+	notas varchar ,
+	data TIMESTAMP ,
+	status varchar ,
+	codCupom varchar references desconto(codigo) on delete cascade ,
+	subtotal real,
+	valor real
+);
+
+CREATE TABLE frete (
+	id serial primary key,
+	codPedido varchar references pedido(codigo) on delete cascade,
+	tipo varchar ,
+	prazo int ,
+	valor real,
+	codRastreio varchar
+);
+
+
+CREATE TABLE cobranca (
+	id serial primary key,
+	codPedido varchar references pedido(codigo) on delete cascade,
+	data TIMESTAMP ,
+	pago varchar ,
+	dataPagamento TIMESTAMP ,
+	valor real 
+
+);
+
+CREATE TABLE itens (
+	id serial primary key,
+	codProduto
+	codPedido varchar references pedido(codigo) on delete cascade,
+	idProdutoOpVar int references produtos_opcaoVariacao(id) on delete cascade,
+	qtde real ,
+	valorTotal real 
+
+);
+
+
+
+CREATE TABLE clientes_aguardando (
+	id serial primary key,
+	codproduto varchar REFERENCES produto (codigo) on delete cascade,
+	idOpcaoVariacao int references opcoesVariacao(id) on delete cascade,
+	email varchar
+	 
+
+);
+
